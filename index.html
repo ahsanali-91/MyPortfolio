@@ -1,0 +1,902 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ahsan's Portfolio</title>
+<link rel="icon" type="image/png" href="favicon.png">
+<meta name="description" content="Ahsan Ali, Senior Unity Developer. 12+ years shipping cross-platform games with 30M+ downloads.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;0,800;1,600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #0A0A0B;
+    --surface: #121417;
+    --card: #1A1E24;
+    --border: #2A2F36;
+    --text: #F5F7FA;
+    --text-dim: #A0A6B0;
+    --accent: #FF4D3D;
+    --accent-hover: #FF6B5A;
+    --glow: #FF8A6B;
+    --sans: 'Manrope', sans-serif;
+    --serif: 'Playfair Display', serif;
+    --maxw: 1240px;
+    --gutter: 40px;
+    --nav-h: 78px;
+  }
+  *{ box-sizing:border-box; }
+  html{ scroll-behavior:smooth; }
+  @media (prefers-reduced-motion:reduce){
+    html{ scroll-behavior:auto; }
+    *{ animation-duration:.001ms !important; animation-iteration-count:1 !important; transition-duration:.001ms !important; }
+  }
+  body{
+    margin:0; background:var(--bg); color:var(--text);
+    font-family:var(--sans); font-size:16px; line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+  }
+  a{ color:inherit; }
+  a:focus-visible, button:focus-visible{ outline:2px solid var(--accent); outline-offset:3px; }
+  img{ max-width:100%; display:block; }
+  .wrap{ max-width:var(--maxw); margin:0 auto; padding:0 var(--gutter); }
+  ::selection{ background:var(--accent); color:#0A0A0B; }
+
+  /* ---------- AMBIENT BACKGROUND (mesh + shooting stars) ---------- */
+  #mesh, #stars{
+    position:fixed; inset:0; width:100vw; height:100vh;
+    pointer-events:none; z-index:-1;
+  }
+  #mesh{ opacity:0.55; }
+  #stars{ opacity:0.4; }
+
+  /* ---------- NAV ---------- */
+  header.nav{
+    position:sticky; top:0; z-index:60;
+    background:rgba(10,10,11,0.82);
+    backdrop-filter:blur(12px);
+    border-bottom:1px solid var(--border);
+  }
+  .nav-inner{
+    max-width:var(--maxw); margin:0 auto; padding:20px var(--gutter);
+    display:flex; align-items:center; justify-content:space-between;
+  }
+  .brand{ display:flex; align-items:center; gap:11px; text-decoration:none; }
+  .brand-mark{ width:auto; height:22px; flex-shrink:0; }
+  .brand-word{ font-weight:800; font-size:15px; letter-spacing:0.12em; text-transform:uppercase; }
+  .brand-word b{ color:var(--accent); font-weight:800; }
+  .nav-links{ display:flex; gap:34px; list-style:none; margin:0; padding:0; font-size:14px; font-weight:600; color:var(--text-dim); }
+  .nav-links a{ text-decoration:none; position:relative; padding-bottom:5px; transition:color .15s ease; }
+  .nav-links a::after{ content:""; position:absolute; left:0; bottom:0; width:0; height:2px; background:var(--accent); transition:width .2s ease; }
+  .nav-links a:hover{ color:var(--text); }
+  .nav-links a:hover::after, .nav-links a.active::after{ width:100%; }
+  .nav-links a.active{ color:var(--text); }
+  .nav-toggle{
+    display:flex; background:var(--accent); border:none; border-radius:50%; width:38px; height:38px;
+    color:#0A0A0B; text-decoration:none; cursor:pointer; align-items:center; justify-content:center;
+    transition:background .15s ease, transform .15s ease; flex-shrink:0;
+  }
+  .nav-toggle:hover{ background:var(--accent-hover); transform:scale(1.06); }
+  @media (max-width:860px){
+    .nav-links{ display:none; }
+  }
+  .scroll-progress-track{ height:3px; width:100%; background:var(--border); }
+  .scroll-progress-fill{ height:100%; width:0%; background:linear-gradient(90deg, var(--accent), var(--accent-hover)); }
+  .nav-links.open{
+    display:flex; position:absolute; top:100%; left:0; right:0;
+    flex-direction:column; gap:0; background:var(--surface); border-bottom:1px solid var(--border);
+    padding:8px 40px 18px;
+  }
+  .nav-links.open a{ padding:12px 0; border-bottom:1px solid var(--border); }
+  .nav-links.open a:last-child{ border-bottom:none; }
+
+  /* ---------- HERO ---------- */
+  .hero{
+    position:relative; height:calc(100vh - var(--nav-h)); height:calc(100svh - var(--nav-h)); min-height:480px;
+    border-bottom:1px solid var(--border); overflow:hidden;
+  }
+  .hero-text{
+    position:relative; z-index:2; width:50%; min-width:400px; max-width:720px; box-sizing:border-box;
+    height:100%; display:flex; flex-direction:column; justify-content:center;
+    padding:56px clamp(24px,4vw,56px) 56px max(var(--gutter), calc((100vw - var(--maxw)) / 2 + var(--gutter)));
+  }
+  .hero-media{ position:absolute; inset:0; overflow:hidden; background:var(--surface); z-index:1; }
+  .hero-media img{ width:100%; height:100%; object-fit:cover; display:block; transform:scale(1); transform-origin:center center; will-change:transform; }
+  .hero-media::before{
+    content:""; position:absolute; inset:0; z-index:1;
+    background:linear-gradient(90deg, var(--bg) 0%, rgba(10,10,11,0) 50%);
+    pointer-events:none;
+  }
+  /* ---------- IMAGE PLACEHOLDER ---------- */
+  .img-placeholder{
+    position:absolute; inset:0; width:100%; height:100%;
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px;
+    background:
+      repeating-linear-gradient(45deg, rgba(245,247,250,0.025) 0 2px, transparent 2px 14px),
+      linear-gradient(150deg, var(--card) 0%, var(--surface) 100%);
+    border:1px dashed var(--border);
+    color:var(--text-dim);
+  }
+  .img-placeholder svg{ width:30px; height:30px; opacity:0.55; }
+  .img-placeholder span{ font-size:11.5px; font-weight:700; text-transform:uppercase; letter-spacing:0.12em; opacity:0.7; text-align:center; padding:0 16px; }
+  .hero-media .img-placeholder{ border-width:0 0 0 1px; }
+  .eyebrow{
+    font-size:12.5px; font-weight:700; text-transform:uppercase; letter-spacing:0.22em;
+    color:rgba(255,255,255,0.94); margin:0 0 18px;
+  }
+  .hero h1{
+    font-family:var(--sans); font-weight:800; font-size:clamp(38px, 4.6vw, 62px);
+    line-height:1.05; letter-spacing:-0.01em; margin:0 0 10px;
+  }
+  .hero h1 span{ color:var(--accent); }
+  .hero-role{
+    font-size:13.5px; font-weight:700; text-transform:uppercase; letter-spacing:0.24em;
+    color:rgba(255,255,255,0.94); margin:0 0 22px;
+  }
+  .hero-lede{ font-size:16px; color:var(--text-dim); max-width:38ch; margin:0 0 34px; }
+  .hero-text .hero-lede{ color:rgba(255,255,255,0.94); }
+  .hero-ctas{ display:flex; gap:14px; flex-wrap:wrap; margin-bottom:56px; }
+  .btn{
+    font-family:var(--sans); font-weight:700; font-size:14.5px; padding:14px 24px; border-radius:9px;
+    text-decoration:none; display:inline-flex; align-items:center; gap:9px; border:1px solid transparent;
+    transition:background .15s ease, color .15s ease, border-color .15s ease, box-shadow .15s ease, transform .15s ease;
+  }
+  .btn-primary{ background:var(--accent); color:#0A0A0B; }
+  .btn-primary:hover{ background:var(--accent-hover); transform:translateY(-1px); }
+  .btn-secondary{ border:1px solid var(--border); color:var(--text); background:transparent; }
+  .btn-secondary:hover{ border-color:var(--accent); color:var(--accent); }
+  .scroll-hint{ display:flex; align-items:center; gap:10px; color:var(--text-dim); font-size:12px; font-weight:600; letter-spacing:0.14em; text-transform:uppercase; }
+  .scroll-hint svg{ animation:bob 1.8s ease-in-out infinite; }
+  @keyframes bob{ 0%,100%{ transform:translateY(0);} 50%{ transform:translateY(5px);} }
+  @media (prefers-reduced-motion:reduce){ .scroll-hint svg{ animation:none; } }
+  @media (max-width:860px){
+    .hero{ min-height:560px; }
+    .hero-text{ height:100%; width:100%; min-width:0; max-width:none; padding:40px 22px 48px; }
+  }
+
+  /* ---------- SECTION SHELL ---------- */
+  section{ padding:96px 0; border-bottom:1px solid var(--border); }
+  section:last-of-type{ border-bottom:none; }
+  .section-head{ display:flex; align-items:flex-end; justify-content:space-between; gap:24px; margin-bottom:48px; flex-wrap:wrap; }
+  .section-tag{ display:flex; align-items:center; gap:10px; margin:0 0 14px; color:var(--accent); font-size:12.5px; font-weight:700; text-transform:uppercase; letter-spacing:0.22em; }
+  .section-tag::before{ content:""; width:26px; height:2px; background:var(--accent); display:inline-block; }
+  .section-title{ font-family:var(--serif); font-weight:700; font-size:clamp(30px, 3.6vw, 44px); margin:0; letter-spacing:-0.01em; }
+  .section-title em{ font-style:italic; color:var(--accent); }
+  .section-link{ color:var(--accent); text-decoration:none; font-weight:700; font-size:14.5px; display:inline-flex; align-items:center; gap:7px; white-space:nowrap; transition:gap .15s ease, color .15s ease; }
+  .section-link:hover{ gap:11px; color:var(--accent-hover); }
+  .section-note{ color:var(--text-dim); font-size:15px; max-width:60ch; margin:-30px 0 40px; }
+  @media (max-width:640px){ :root{ --gutter:22px; } section{ padding:64px 0; } }
+
+  /* ---------- STATS ---------- */
+  .stats{ display:grid; grid-template-columns:repeat(4,1fr); border:1px solid var(--border); border-radius:14px; overflow:hidden; background:var(--surface); }
+  .stat{ padding:34px 28px; border-right:1px solid var(--border); position:relative; }
+  .stat:last-child{ border-right:none; }
+  .stat-num{ font-family:var(--serif); font-size:clamp(28px,3.2vw,40px); font-weight:700; color:var(--accent); }
+  .stat-label{ font-size:13.5px; color:var(--text-dim); margin-top:8px; }
+  .stats-note{ font-size:13px; color:var(--text-dim); opacity:0.75; margin:18px 2px 0; }
+  @media (max-width:780px){
+    .stats{ grid-template-columns:1fr 1fr; }
+    .stat{ border-bottom:1px solid var(--border); }
+    .stat:nth-child(2n){ border-right:none; }
+  }
+
+  /* ---------- PROJECTS ---------- */
+  .proj-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:26px; }
+  .proj-card{
+    background:var(--card); border:1px solid var(--border); border-radius:14px; overflow:hidden;
+    text-decoration:none; color:inherit; display:flex; flex-direction:column;
+    transition:transform .2s ease, border-color .2s ease, box-shadow .2s ease;
+  }
+  a.proj-card:hover{ transform:translateY(-4px); border-color:#3a4048; box-shadow:0 18px 40px -18px rgba(0,0,0,0.7); }
+  a.proj-card:hover .proj-arrow{ background:var(--accent); color:#0A0A0B; transform:translateX(2px); }
+  .proj-art{ position:relative; aspect-ratio:16/10; overflow:hidden; }
+  .proj-art svg{ width:100%; height:100%; display:block; }
+  .proj-art img{ width:100%; height:100%; display:block; object-fit:contain; background:var(--card); padding:26px; box-sizing:border-box; }
+  .proj-art img.cover{ object-fit:cover; padding:0; }
+  .proj-badge{
+    position:absolute; top:12px; right:12px; background:rgba(10,10,11,0.72); backdrop-filter:blur(6px);
+    color:var(--glow); font-size:11.5px; font-weight:700; padding:5px 11px; border-radius:20px;
+    border:1px solid rgba(255,138,107,0.35); letter-spacing:0.03em;
+  }
+  .proj-body{ padding:22px 22px 24px; display:flex; flex-direction:column; gap:10px; flex:1; }
+  .proj-top{ display:flex; align-items:flex-start; justify-content:space-between; gap:12px; }
+  .proj-name{ font-family:var(--serif); font-size:20px; font-weight:700; margin:0; }
+  .proj-org{ font-size:12px; color:var(--text-dim); text-transform:uppercase; letter-spacing:0.08em; margin:2px 0 0; }
+  .proj-desc{ color:var(--text-dim); font-size:14.5px; margin:2px 0 4px; flex:1; }
+  .proj-foot{ display:flex; align-items:center; justify-content:space-between; gap:12px; margin-top:auto; }
+  .proj-tags{ display:flex; flex-wrap:wrap; gap:7px; }
+  .proj-tag{ font-size:11.5px; font-weight:600; padding:5px 11px; border-radius:20px; background:rgba(245,247,250,0.06); color:var(--text-dim); border:1px solid var(--border); }
+  .proj-arrow{
+    width:32px; height:32px; border-radius:50%; border:1px solid var(--border); flex-shrink:0;
+    display:flex; align-items:center; justify-content:center; color:var(--text-dim);
+    transition:background .15s ease, color .15s ease, transform .15s ease;
+  }
+  @media (max-width:980px){ .proj-grid{ grid-template-columns:1fr 1fr; } }
+  @media (max-width:640px){ .proj-grid{ grid-template-columns:1fr; } }
+
+  /* ---------- EXPERIENCE ---------- */
+  .timeline{ position:relative; border-left:1px solid var(--border); padding-left:38px; max-width:800px; }
+  .tl-entry{ position:relative; padding-bottom:52px; }
+  .tl-entry:last-child{ padding-bottom:0; }
+  @property --fill{ syntax:'<percentage>'; inherits:false; initial-value:0%; }
+  .tl-entry::before{
+    content:""; position:absolute; left:-38px; transform:translateX(-50%); top:4px;
+    width:14px; height:14px; border-radius:50%; --fill:0%;
+    background:conic-gradient(var(--accent) var(--fill), rgba(245,247,250,0.85) 0deg);
+    transition:--fill .9s ease;
+  }
+  .tl-entry.active::before{ --fill:100%; }
+  .tl-entry::after{ content:""; position:absolute; left:-38px; transform:translateX(-50%); top:6.5px; width:9px; height:9px; border-radius:50%; background:var(--bg); }
+  @media (prefers-reduced-motion:reduce){ .tl-entry::before{ transition:none; } }
+  .tl-date{ font-size:12.5px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:var(--accent); margin-bottom:8px; }
+  .tl-role{ font-family:var(--serif); font-size:21px; font-weight:700; margin:0 0 3px; }
+  .tl-org{ font-size:14px; color:var(--text-dim); margin-bottom:16px; }
+  .tl-points{ margin:0; padding:0; list-style:none; max-width:60ch; }
+  .tl-points li{ position:relative; padding-left:20px; color:var(--text-dim); font-size:15px; margin-bottom:9px; }
+  .tl-points li::before{ content:"—"; position:absolute; left:0; color:var(--border); }
+
+  /* ---------- SKILLS ---------- */
+  .skill-row{ display:flex; flex-wrap:wrap; gap:14px; margin-bottom:56px; }
+  .skill-chip{
+    display:flex; flex-direction:column; align-items:center; gap:12px;
+    background:var(--card); border:1px solid var(--border); border-radius:14px;
+    padding:22px 20px; width:132px; transition:border-color .15s ease, transform .15s ease;
+  }
+  .skill-chip:hover{ border-color:var(--accent); transform:translateY(-3px); }
+  .skill-chip svg{ width:30px; height:30px; }
+  .skill-chip span{ font-size:13px; font-weight:600; color:var(--text-dim); text-align:center; }
+  .skill-groups{ display:grid; grid-template-columns:repeat(2,1fr); gap:30px 48px; }
+  .skill-group-title{ font-size:12.5px; font-weight:700; text-transform:uppercase; letter-spacing:0.14em; color:var(--accent); margin:0 0 14px; }
+  .skill-tags{ display:flex; flex-wrap:wrap; gap:9px; }
+  .skill-tag{ font-size:13px; padding:8px 14px; border:1px solid var(--border); border-radius:8px; color:var(--text-dim); background:var(--card); }
+  @media (max-width:780px){ .skill-groups{ grid-template-columns:1fr; } }
+
+  /* ---------- EDUCATION ---------- */
+  .edu-card{
+    display:flex; justify-content:space-between; align-items:baseline; flex-wrap:wrap; gap:12px;
+    border:1px solid var(--border); border-radius:14px; padding:28px 30px; background:var(--surface);
+  }
+  .edu-degree{ font-family:var(--serif); font-weight:700; font-size:19px; }
+  .edu-school{ color:var(--text-dim); font-size:14.5px; margin-top:5px; }
+  .edu-date{ font-size:13px; color:var(--text-dim); font-weight:600; letter-spacing:0.05em; }
+
+  /* ---------- CONTACT ---------- */
+  .contact-inner{ display:grid; grid-template-columns:1.1fr 1fr; gap:56px; }
+  .contact-links{ display:flex; flex-direction:column; gap:0; }
+  .contact-link{ display:flex; justify-content:space-between; align-items:center; padding:19px 0; border-top:1px solid var(--border); text-decoration:none; font-size:16px; transition:padding-left .15s ease; }
+  .contact-link:last-child{ border-bottom:1px solid var(--border); }
+  .contact-link:hover{ padding-left:6px; }
+  .contact-link span:first-child{ color:var(--text-dim); font-weight:600; font-size:12.5px; text-transform:uppercase; letter-spacing:0.1em; }
+  .contact-link span:last-child{ color:var(--text); font-weight:600; }
+  .contact-link:hover span:last-child{ color:var(--accent); }
+  .contact-arrow{ color:var(--accent); }
+  @media (max-width:780px){ .contact-inner{ grid-template-columns:1fr; } }
+
+  footer{ padding:32px 0 44px; color:var(--text-dim); font-size:13px; display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px; }
+  footer .wrap{ display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px; width:100%; }
+
+</style>
+</head>
+<body>
+
+<canvas id="mesh" aria-hidden="true"></canvas>
+<canvas id="stars" aria-hidden="true"></canvas>
+
+<header class="nav">
+  <div class="nav-inner">
+    <a class="brand" href="#top">
+      <img class="brand-mark" src="logo.png" alt="Ahsan Ali logo">
+      <span class="brand-word">AHSAN <b>ALI</b></span>
+    </a>
+    <ul class="nav-links" id="navLinks">
+      <li><a href="#top" class="active">Home</a></li>
+      <li><a href="#work">Experience</a></li>
+      <li><a href="#projects">Projects</a></li>
+      <li><a href="#skills">Skills</a></li>
+      <li><a href="#contact">Contact</a></li>
+    </ul>
+    <a class="nav-toggle" id="navToggle" href="https://wa.me/923125127871" target="_blank" rel="noopener" aria-label="Chat on WhatsApp">
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M12.02 2C6.5 2 2 6.48 2 12c0 1.85.5 3.58 1.38 5.07L2 22l5.08-1.33A9.94 9.94 0 0 0 12.02 22C17.53 22 22 17.52 22 12S17.53 2 12.02 2zm5.85 14.24c-.25.7-1.45 1.34-2 1.42-.51.08-1.15.11-1.86-.12-.43-.14-.98-.32-1.68-.62-2.96-1.28-4.89-4.25-5.04-4.45-.15-.2-1.2-1.6-1.2-3.05 0-1.45.76-2.16 1.03-2.46.27-.3.6-.37.8-.37.2 0 .4 0 .58.01.19.01.44-.07.68.53.25.6.85 2.07.92 2.22.07.15.12.33.02.53-.1.2-.15.32-.3.5-.15.18-.31.4-.44.53-.15.15-.3.31-.13.6.17.3.76 1.26 1.63 2.04 1.12 1 2.06 1.32 2.36 1.47.3.15.47.13.65-.08.18-.2.75-.87.95-1.17.2-.3.4-.25.66-.15.27.1 1.72.81 2.02.96.3.15.5.22.57.35.08.13.08.72-.17 1.42z"/></svg>
+    </a>
+  </div>
+  <div class="scroll-progress-track"><div class="scroll-progress-fill" id="scrollFill"></div></div>
+</header>
+
+<section class="hero" id="top">
+  <div class="hero-text">
+    <p class="eyebrow">Hello, I'm</p>
+    <h1>Ahsan <span>Ali</span></h1>
+    <p class="hero-role">Senior Unity Developer</p>
+    <p class="hero-lede">I build performant, cross-platform Unity titles — FPS, racing, simulation and real-time multiplayer sports — shipped to 30M+ players across Android, iOS and WebGL over 12+ years in production.</p>
+    <div class="hero-ctas">
+      <a class="btn btn-primary" href="#projects">View My Projects
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+      </a>
+      <a class="btn btn-secondary" href="#contact">Contact Me</a>
+    </div>
+    <div class="scroll-hint">
+      <svg width="14" height="20" viewBox="0 0 14 20" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="1" width="12" height="18" rx="6"/><line x1="7" y1="6" x2="7" y2="10"/></svg>
+      Scroll down
+    </div>
+  </div>
+  <div class="hero-media">
+    <img src="hero.jpg" alt="City skyline at sunset with a muscle car heading toward downtown" style="object-position:60% 45%;">
+  </div>
+</section>
+
+<section id="record">
+  <div class="wrap">
+    <p class="section-tag">Track record</p>
+    <h2 class="section-title" style="margin-bottom:44px;">Thirteen years of production <em>Unity</em> work, in numbers.</h2>
+    <div class="stats">
+      <div class="stat"><div class="stat-num" data-count="30000000" data-suffix="M+">0</div><div class="stat-label">Cumulative downloads</div></div>
+      <div class="stat"><div class="stat-num" data-count="12" data-suffix="+">0</div><div class="stat-label">Years in Unity development</div></div>
+      <div class="stat"><div class="stat-num" data-count="3" data-suffix="">0</div><div class="stat-label">Companies, zero career gaps</div></div>
+      <div class="stat"><div class="stat-num" data-count="10" data-suffix="+">0</div><div class="stat-label">Commercially shipped titles</div></div>
+    </div>
+    <p class="stats-note">Plus several additional titles shipped earlier in my career — no longer publicly listed, so left off this page.</p>
+  </div>
+</section>
+
+<section id="work">
+  <div class="wrap">
+    <p class="section-tag">Experience</p>
+    <h2 class="section-title" style="margin-bottom:48px;">Where the work happened.</h2>
+    <div class="timeline">
+
+      <div class="tl-entry">
+        <div class="tl-date">2020 — Present</div>
+        <div class="tl-role">Senior Games Engineer</div>
+        <div class="tl-org">Rockville Technologies, Pakistan</div>
+        <ul class="tl-points">
+          <li>Architected and implemented core gameplay and UI/UX systems in Unity and C#</li>
+          <li>Built real-time multiplayer features using Photon (PUN)</li>
+          <li>Integrated backend services with Firebase and custom REST APIs</li>
+          <li>Optimized performance for low- and mid-range Android hardware</li>
+          <li>Collaborated with design, art and QA to deliver production-ready builds</li>
+        </ul>
+      </div>
+
+      <div class="tl-entry">
+        <div class="tl-date">2016 — 2020</div>
+        <div class="tl-role">Senior Games Developer</div>
+        <div class="tl-org">Skippy Apps</div>
+        <ul class="tl-points">
+          <li>Shipped titles that collectively reached 30M+ downloads on Android</li>
+          <li>Designed and implemented core gameplay mechanics in Unity and C#</li>
+          <li>Partnered with artists and designers on animation and UI/UX</li>
+          <li>Diagnosed and resolved crashes and gameplay-critical bugs</li>
+          <li>Mentored developers through code review and technical training</li>
+        </ul>
+      </div>
+
+      <div class="tl-entry">
+        <div class="tl-date">2013 — 2016</div>
+        <div class="tl-role">Unity 3D Developer</div>
+        <div class="tl-org">Absologix Solutions (Jolta Technologies)</div>
+        <ul class="tl-points">
+          <li>Built foundational gameplay, UI and AI systems in Unity 3D</li>
+          <li>Gained hands-on production experience across full release cycles</li>
+        </ul>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<section id="projects">
+  <div class="wrap">
+    <div class="section-head">
+      <div>
+        <p class="section-tag">Featured projects</p>
+        <h2 class="section-title">My Latest Work</h2>
+      </div>
+      <a class="section-link" href="https://www.linkedin.com/in/ahsanali11/" target="_blank" rel="noopener">Full history on LinkedIn
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+      </a>
+    </div>
+
+    <div class="proj-grid">
+
+      <div class="proj-card">
+        <div class="proj-art">
+          <img class="cover" src="cricwar.jpg" alt="CricWar">
+          <span class="proj-badge">Releasing Soon</span>
+        </div>
+        <div class="proj-body">
+          <div class="proj-top"><div><p class="proj-name">CricWar</p><p class="proj-org">Rockville Technologies</p></div></div>
+          <p class="proj-desc">Owned 95% of core Unity development — a modular, scalable architecture with real-time multiplayer and live scoring.</p>
+          <div class="proj-foot">
+            <div class="proj-tags"><span class="proj-tag">Unity</span><span class="proj-tag">C#</span><span class="proj-tag">Multiplayer</span></div>
+          </div>
+        </div>
+      </div>
+
+      <a class="proj-card" href="https://play.google.com/store/apps/details?id=com.rockvillegames.real.cricket.game" target="_blank" rel="noopener">
+        <div class="proj-art">
+          <img class="cover" src="rvg-cricket.jpg" alt="RVG Cricket">
+        </div>
+        <div class="proj-body">
+          <div class="proj-top"><div><p class="proj-name">RVG Cricket</p><p class="proj-org">Rockville Technologies</p></div></div>
+          <p class="proj-desc">Built 60% of the core Unity systems for realistic cricket gameplay, with Photon multiplayer and Android performance work.</p>
+          <div class="proj-foot">
+            <div class="proj-tags"><span class="proj-tag">Unity</span><span class="proj-tag">C#</span><span class="proj-tag">Mobile</span></div>
+            <span class="proj-arrow"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><line x1="5" y1="19" x2="19" y2="5"/><polyline points="8 5 19 5 19 16"/></svg></span>
+          </div>
+        </div>
+      </a>
+
+      <a class="proj-card" href="https://play.google.com/store/apps/details?id=com.delta.force.counter.terrorist.war" target="_blank" rel="noopener">
+        <div class="proj-art">
+          <img class="cover" src="delta-eforce.jpg" alt="Delta eForce: Military Shooting">
+        </div>
+        <div class="proj-body">
+          <div class="proj-top"><div><p class="proj-name">Delta eForce: Military Shooting</p><p class="proj-org">Unity 3D mobile game</p></div></div>
+          <p class="proj-desc">Modular gameplay architecture, AI systems and performance optimization.</p>
+          <div class="proj-foot">
+            <div class="proj-tags"><span class="proj-tag">Unity</span><span class="proj-tag">AI</span><span class="proj-tag">Mobile</span></div>
+            <span class="proj-arrow"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><line x1="5" y1="19" x2="19" y2="5"/><polyline points="8 5 19 5 19 16"/></svg></span>
+          </div>
+        </div>
+      </a>
+
+      <a class="proj-card" href="https://play.google.com/store/apps/details?id=com.skippy.the.last.commando.free" target="_blank" rel="noopener">
+        <div class="proj-art">
+          <img class="cover" src="last-commando.jpg" alt="The Last Commando I & II">
+        </div>
+        <div class="proj-body">
+          <div class="proj-top"><div><p class="proj-name">The Last Commando I &amp; II</p><p class="proj-org">Unity 3D, two-title series</p></div></div>
+          <p class="proj-desc">Core gameplay systems, AI, animation and performance optimization across both releases.</p>
+          <div class="proj-foot">
+            <div class="proj-tags"><span class="proj-tag">Unity</span><span class="proj-tag">Animation</span><span class="proj-tag">Mobile</span></div>
+            <span class="proj-arrow"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><line x1="5" y1="19" x2="19" y2="5"/><polyline points="8 5 19 5 19 16"/></svg></span>
+          </div>
+        </div>
+      </a>
+
+      <a class="proj-card" href="https://play.google.com/store/apps/details?id=com.skippy.jet.air.strike.mission" target="_blank" rel="noopener">
+        <div class="proj-art">
+          <img class="cover" src="fly-fighter-jet.jpg" alt="Fly Fighter Jet">
+        </div>
+        <div class="proj-body">
+          <div class="proj-top"><div><p class="proj-name">Fly Fighter Jet</p><p class="proj-org">Unity 3D mobile game</p></div></div>
+          <p class="proj-desc">Flight mechanics, HUD/UI and physics built from the ground up.</p>
+          <div class="proj-foot">
+            <div class="proj-tags"><span class="proj-tag">Unity</span><span class="proj-tag">Physics</span><span class="proj-tag">Mobile</span></div>
+            <span class="proj-arrow"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><line x1="5" y1="19" x2="19" y2="5"/><polyline points="8 5 19 5 19 16"/></svg></span>
+          </div>
+        </div>
+      </a>
+
+      <a class="proj-card" href="https://play.google.com/store/apps/details?id=com.skippy.mountain.sniper.shooting" target="_blank" rel="noopener">
+        <div class="proj-art">
+          <img class="cover" src="mountain-sniper.jpg" alt="Mountain Sniper Shooting: FPS">
+        </div>
+        <div class="proj-body">
+          <div class="proj-top"><div><p class="proj-name">Mountain Sniper Shooting: FPS</p><p class="proj-org">Lead Unity 3D developer</p></div></div>
+          <p class="proj-desc">FPS mechanics, AI, UI/UX and the animation system, built and optimized for mobile.</p>
+          <div class="proj-foot">
+            <div class="proj-tags"><span class="proj-tag">Unity</span><span class="proj-tag">AI</span><span class="proj-tag">Mobile</span></div>
+            <span class="proj-arrow"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><line x1="5" y1="19" x2="19" y2="5"/><polyline points="8 5 19 5 19 16"/></svg></span>
+          </div>
+        </div>
+      </a>
+
+    </div>
+    <p class="stats-note" style="margin-top:22px;">Several additional titles shipped earlier in my career are no longer live or listed publicly.</p>
+  </div>
+</section>
+
+
+<section id="skills">
+  <div class="wrap">
+    <p class="section-tag">Skills &amp; tools</p>
+    <h2 class="section-title" style="margin-bottom:40px;">The systems I work in.</h2>
+
+    <div class="skill-row">
+      <div class="skill-chip">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#FF4D3D" stroke-width="1.6"><path d="M12 2 L21 7 V17 L12 22 L3 17 V7 Z"/><path d="M12 2 V12 M12 12 L21 7 M12 12 L3 7"/></svg>
+        <span>Unity</span>
+      </div>
+      <div class="skill-chip">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#F5F7FA" stroke-width="1.6"><path d="M8 4 L4 12 L8 20 M16 4 L20 12 L16 20"/></svg>
+        <span>C#</span>
+      </div>
+      <div class="skill-chip">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#F5F7FA" stroke-width="1.4"><ellipse cx="12" cy="12" rx="10" ry="4.2"/><ellipse cx="12" cy="12" rx="10" ry="4.2" transform="rotate(60 12 12)"/><ellipse cx="12" cy="12" rx="10" ry="4.2" transform="rotate(120 12 12)"/><circle cx="12" cy="12" r="1.8" fill="#FF6B5A" stroke="none"/></svg>
+        <span>Photon</span>
+      </div>
+      <div class="skill-chip">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#FF8A6B" stroke-width="1.6"><path d="M8 21 C4 17 5 12 9 3 C10 8 12 8.5 13 6 C16 9 17 13 16 16 C18 14 19 11 18 8 C21 12 21 18 16 21 C13 23 10 23 8 21 Z"/></svg>
+        <span>Firebase</span>
+      </div>
+      <div class="skill-chip">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#F5F7FA" stroke-width="1.6"><circle cx="6" cy="6" r="2.2"/><circle cx="6" cy="18" r="2.2"/><circle cx="18" cy="12" r="2.2"/><path d="M6 8.2 V15.8 M8 6 H14 C16 6 18 8 18 10 V9.8"/></svg>
+        <span>Git</span>
+      </div>
+      <div class="skill-chip">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#A0A6B0" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><line x1="8" y1="12" x2="8.01" y2="12"/><line x1="12" y1="12" x2="12.01" y2="12"/><line x1="16" y1="12" x2="16.01" y2="12"/></svg>
+        <span>+ More</span>
+      </div>
+    </div>
+
+    <div class="skill-groups">
+      <div class="skill-group">
+        <p class="skill-group-title">Programming &amp; architecture</p>
+        <div class="skill-tags">
+          <span class="skill-tag">C#</span><span class="skill-tag">OOP</span><span class="skill-tag">Modular architecture</span><span class="skill-tag">Design patterns</span><span class="skill-tag">REST API integration</span><span class="skill-tag">JSON data management</span>
+        </div>
+      </div>
+      <div class="skill-group">
+        <p class="skill-group-title">Engine &amp; platforms</p>
+        <div class="skill-tags">
+          <span class="skill-tag">Unity 3D</span><span class="skill-tag">Android</span><span class="skill-tag">iOS</span><span class="skill-tag">WebGL</span><span class="skill-tag">Build optimization</span><span class="skill-tag">VR</span><span class="skill-tag">Third-party SDKs</span>
+        </div>
+      </div>
+      <div class="skill-group">
+        <p class="skill-group-title">Gameplay &amp; systems</p>
+        <div class="skill-tags">
+          <span class="skill-tag">Gameplay mechanics</span><span class="skill-tag">UI/UX implementation</span><span class="skill-tag">AI &amp; behavior systems</span><span class="skill-tag">Physics</span><span class="skill-tag">Animation systems</span>
+        </div>
+      </div>
+      <div class="skill-group">
+        <p class="skill-group-title">Multiplayer &amp; networking</p>
+        <div class="skill-tags">
+          <span class="skill-tag">Real-time PvP</span><span class="skill-tag">Photon (PUN)</span><span class="skill-tag">RPC &amp; network sync</span><span class="skill-tag">Client-server architecture</span>
+        </div>
+      </div>
+      <div class="skill-group">
+        <p class="skill-group-title">Optimization &amp; debugging</p>
+        <div class="skill-tags">
+          <span class="skill-tag">Performance profiling</span><span class="skill-tag">Build size reduction</span><span class="skill-tag">Troubleshooting</span><span class="skill-tag">Memory management</span>
+        </div>
+      </div>
+      <div class="skill-group">
+        <p class="skill-group-title">Leadership &amp; collaboration</p>
+        <div class="skill-tags">
+          <span class="skill-tag">Technical mentorship</span><span class="skill-tag">Code reviews</span><span class="skill-tag">Cross-discipline collaboration</span><span class="skill-tag">Workflow optimization</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="education">
+  <div class="wrap">
+    <p class="section-tag">Education</p>
+    <div class="edu-card">
+      <div>
+        <div class="edu-degree">Bachelor's in Software Engineering</div>
+        <div class="edu-school">University of Engineering and Technology, Taxila, Pakistan</div>
+      </div>
+      <div class="edu-date">2009 — 2013</div>
+    </div>
+  </div>
+</section>
+
+<section id="contact">
+  <div class="wrap contact-inner">
+    <div>
+      <p class="section-tag">Contact</p>
+      <h2 class="section-title">Have a Unity project that needs to ship?</h2>
+      <p class="hero-lede" style="margin:22px 0 0;">Available for remote, onsite, national or international Unity development work — full titles, gameplay systems, or performance passes on an existing build.</p>
+    </div>
+    <div class="contact-links">
+      <a class="contact-link" href="https://wa.me/923125127871" target="_blank" rel="noopener"><span>WhatsApp</span><span>+92 312 5127871</span></a>
+      <a class="contact-link" href="mailto:ahsanali_11@hotmail.com"><span>Email</span><span>ahsanali_11@hotmail.com</span></a>
+      <a class="contact-link" href="tel:+923125127871"><span>Phone</span><span>+92 312 5127871</span></a>
+      <a class="contact-link" href="https://www.linkedin.com/in/ahsanali11/" target="_blank" rel="noopener"><span>LinkedIn</span><span>linkedin.com/in/ahsanali11</span></a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <span>Ahsan Ali — Senior Unity Developer</span>
+    <span>Titles shipped, players served.</span>
+  </div>
+</footer>
+
+<script>
+  // Hero image: smooth zoom-in as the page scrolls down, zoom back out near the top
+  (function(){
+    var img = document.querySelector('.hero-media img');
+    var heroEl = document.querySelector('.hero');
+    if(!img || !heroEl) return;
+    var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if(reduce) return;
+
+    var maxZoom = 0.15; // scales up to 1.15x by the time you've scrolled one hero-height
+    var target = 1, current = 1;
+
+    function updateTarget(){
+      var heroHeight = heroEl.offsetHeight || 1;
+      var progress = Math.min(Math.max(window.scrollY / heroHeight, 0), 1);
+      target = 1 + progress * maxZoom;
+    }
+
+    function tick(){
+      current += (target - current) * 0.08;
+      img.style.transform = 'scale(' + current.toFixed(4) + ')';
+      requestAnimationFrame(tick);
+    }
+
+    updateTarget();
+    window.addEventListener('scroll', updateTarget, { passive:true });
+    window.addEventListener('resize', updateTarget);
+    requestAnimationFrame(tick);
+  })();
+
+  // "Home" always scrolls to the absolute top of the page
+  (function(){
+    document.querySelectorAll('a[href="#top"]').forEach(function(link){
+      link.addEventListener('click', function(e){
+        e.preventDefault();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        history.pushState(null, '', '#top');
+      });
+    });
+  })();
+
+  // Ambient mesh — slow-drifting node grid, fixed behind the whole page (hero's own photo covers it there)
+  (function(){
+    var canvas = document.getElementById('mesh');
+    if(!canvas) return;
+    var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var ctx = canvas.getContext('2d');
+    var w, h, nodes = [];
+
+    function resize(){
+      w = canvas.width = window.innerWidth;
+      h = canvas.height = window.innerHeight;
+      var cols = Math.round(w / 90);
+      var rows = Math.round(h / 90);
+      nodes = [];
+      for(var i = 0; i <= cols; i++){
+        for(var j = 0; j <= rows; j++){
+          nodes.push({
+            x: (i / cols) * w,
+            y: (j / rows) * h,
+            ox: (i / cols) * w,
+            oy: (j / rows) * h,
+            p: Math.random() * Math.PI * 2
+          });
+        }
+      }
+    }
+
+    function draw(t){
+      ctx.clearRect(0, 0, w, h);
+      ctx.strokeStyle = 'rgba(255,77,61,0.10)';
+      ctx.fillStyle = 'rgba(255,77,61,0.35)';
+      nodes.forEach(function(n){
+        n.x = n.ox + Math.sin(t/1600 + n.p) * 8;
+        n.y = n.oy + Math.cos(t/1600 + n.p) * 8;
+      });
+      var cell = 90;
+      for(var idx = 0; idx < nodes.length; idx++){
+        var n = nodes[idx];
+        var right = nodes[idx + 1];
+        var down = nodes[idx + Math.round(h/cell) + 1];
+        if(right && (idx+1) % (Math.round(h/cell)+1) !== 0){
+          ctx.beginPath(); ctx.moveTo(n.x, n.y); ctx.lineTo(right.x, right.y); ctx.stroke();
+        }
+        if(down){
+          ctx.beginPath(); ctx.moveTo(n.x, n.y); ctx.lineTo(down.x, down.y); ctx.stroke();
+        }
+      }
+      nodes.forEach(function(n){
+        ctx.beginPath();
+        ctx.arc(n.x, n.y, 1.4, 0, Math.PI*2);
+        ctx.fill();
+      });
+      if(!reduce) requestAnimationFrame(draw);
+    }
+
+    resize();
+    window.addEventListener('resize', resize);
+    if(reduce){ draw(0); } else { requestAnimationFrame(draw); }
+  })();
+
+  // Shooting stars — one at a time, from a random offscreen point, in a random
+  // direction, vanishing off the far edge, then reappearing after a random pause.
+  // Fixed behind the whole page (hero's own photo covers it there).
+  (function(){
+    var canvas = document.getElementById('stars');
+    if(!canvas) return;
+    var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if(reduce) return;
+    var ctx = canvas.getContext('2d');
+    var w, h;
+
+    function resize(){
+      w = canvas.width = window.innerWidth;
+      h = canvas.height = window.innerHeight;
+    }
+    resize();
+    window.addEventListener('resize', resize);
+
+    var margin = 60;
+    var star = null;
+    var nextSpawn = performance.now() + 800;
+    var lastTs = null;
+
+    function spawn(){
+      var edge = Math.floor(Math.random() * 4);
+      var x, y;
+      if(edge === 0){ x = -margin; y = Math.random() * h; }
+      else if(edge === 1){ x = w + margin; y = Math.random() * h; }
+      else if(edge === 2){ x = Math.random() * w; y = -margin; }
+      else { x = Math.random() * w; y = h + margin; }
+
+      var tx = w * 0.1 + Math.random() * w * 0.8;
+      var ty = h * 0.1 + Math.random() * h * 0.8;
+      var dx = tx - x, dy = ty - y;
+      var dist = Math.sqrt(dx * dx + dy * dy) || 1;
+      var speed = 465 + Math.random() * 315;
+
+      star = {
+        x: x, y: y,
+        vx: (dx / dist) * speed,
+        vy: (dy / dist) * speed,
+        trail: []
+      };
+    }
+
+    function draw(ts){
+      if(!lastTs) lastTs = ts;
+      var dt = Math.min((ts - lastTs) / 1000, 0.05);
+      lastTs = ts;
+
+      ctx.clearRect(0, 0, w, h);
+
+      if(!star && ts >= nextSpawn){
+        spawn();
+      }
+
+      if(star){
+        star.x += star.vx * dt;
+        star.y += star.vy * dt;
+        star.trail.push({ x: star.x, y: star.y });
+        if(star.trail.length > 10) star.trail.shift();
+
+        for(var i = 0; i < star.trail.length - 1; i++){
+          var p = star.trail[i];
+          var alpha = (i / star.trail.length) * 0.7;
+          ctx.strokeStyle = 'rgba(245,247,250,' + alpha.toFixed(3) + ')';
+          ctx.lineWidth = 1.4;
+          ctx.beginPath();
+          ctx.moveTo(p.x, p.y);
+          var n = star.trail[i + 1];
+          ctx.lineTo(n.x, n.y);
+          ctx.stroke();
+        }
+
+        ctx.beginPath();
+        ctx.arc(star.x, star.y, 1.8, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(255,77,61,0.95)';
+        ctx.shadowColor = 'rgba(255,77,61,0.8)';
+        ctx.shadowBlur = 8;
+        ctx.fill();
+        ctx.shadowBlur = 0;
+
+        var outMargin = margin + 40;
+        if(star.x < -outMargin || star.x > w + outMargin || star.y < -outMargin || star.y > h + outMargin){
+          star = null;
+          nextSpawn = ts + 4500 + Math.random() * 6500;
+        }
+      }
+
+      requestAnimationFrame(draw);
+    }
+
+    requestAnimationFrame(draw);
+  })();
+
+  // Measure real nav height so the hero fills exactly one screen below it
+  (function(){
+    var nav = document.querySelector('header.nav');
+    if(!nav) return;
+    function setNavHeight(){
+      document.documentElement.style.setProperty('--nav-h', nav.offsetHeight + 'px');
+    }
+    setNavHeight();
+    window.addEventListener('resize', setNavHeight);
+    if(document.fonts && document.fonts.ready){ document.fonts.ready.then(setNavHeight); }
+  })();
+
+  // Scroll progress bar
+  (function(){
+    var fill = document.getElementById('scrollFill');
+    if(!fill) return;
+    function update(){
+      var doc = document.documentElement;
+      var scrollTop = window.scrollY || doc.scrollTop;
+      var max = doc.scrollHeight - doc.clientHeight;
+      var pct = max > 0 ? (scrollTop / max) * 100 : 0;
+      fill.style.width = pct + '%';
+    }
+    window.addEventListener('scroll', update, { passive:true });
+    window.addEventListener('resize', update);
+    update();
+  })();
+
+  // Animated counters
+  var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function formatterFor(el, target){
+    if(el.hasAttribute('data-suffix')){
+      var suffix = el.getAttribute('data-suffix');
+      return function(n){
+        if(target >= 1000000) return Math.round(n / 1000000) + suffix;
+        return n + suffix;
+      };
+    }
+    return function(n){
+      if(n >= 1000000) return (n / 1000000).toFixed(0) + 'M+';
+      return n.toString();
+    };
+  }
+  function animateCounter(el){
+    var target = parseInt(el.getAttribute('data-count'), 10);
+    var format = formatterFor(el, target);
+    if(reduceMotion){ el.textContent = format(target); return; }
+    var start = null; var duration = 750;
+    function step(ts){
+      if(!start) start = ts;
+      var progress = Math.min((ts - start) / duration, 1);
+      var eased = 1 - Math.pow(1 - progress, 3);
+      el.textContent = format(Math.floor(eased * target));
+      if(progress < 1) requestAnimationFrame(step);
+      else el.textContent = format(target);
+    }
+    requestAnimationFrame(step);
+  }
+  var statEls = document.querySelectorAll('.stat-num[data-count]');
+  if('IntersectionObserver' in window){
+    var statObserver = new IntersectionObserver(function(entries, obs){
+      entries.forEach(function(entry){
+        if(entry.isIntersecting){ animateCounter(entry.target); obs.unobserve(entry.target); }
+      });
+    }, { threshold: 0.5 });
+    statEls.forEach(function(el){ statObserver.observe(el); });
+  } else { statEls.forEach(animateCounter); }
+
+  // Timeline ring fill
+  (function(){
+    var entries = document.querySelectorAll('.tl-entry');
+    if(!entries.length || !('IntersectionObserver' in window)) return;
+    var ringObserver = new IntersectionObserver(function(list){
+      list.forEach(function(entry){ entry.target.classList.toggle('active', entry.isIntersecting); });
+    }, { rootMargin: '-40% 0px -45% 0px', threshold: 0 });
+    entries.forEach(function(el){ ringObserver.observe(el); });
+  })();
+
+  // Nav scrollspy
+  (function(){
+    var navLinks = Array.prototype.slice.call(document.querySelectorAll('.nav-links a'));
+    if(!navLinks.length) return;
+    var idMap = { '#top': document.getElementById('top') };
+    navLinks.forEach(function(link){
+      var id = link.getAttribute('href');
+      if(id && id !== '#top') idMap[id] = document.querySelector(id);
+    });
+    function setActive(id){
+      navLinks.forEach(function(link){ link.classList.toggle('active', link.getAttribute('href') === id); });
+    }
+    navLinks.forEach(function(link){
+      link.addEventListener('click', function(){ setActive(link.getAttribute('href')); });
+    });
+    var sections = Object.keys(idMap).map(function(k){ return { id:k, el:idMap[k] }; }).filter(function(s){ return s.el; });
+    if('IntersectionObserver' in window){
+      var observer = new IntersectionObserver(function(entries){
+        entries.forEach(function(entry){
+          if(entry.isIntersecting){ setActive('#' + entry.target.id); }
+        });
+      }, { rootMargin: '-45% 0px -50% 0px', threshold: 0 });
+      sections.forEach(function(s){ observer.observe(s.el); });
+    }
+  })();
+</script>
+
+</body>
+</html>
